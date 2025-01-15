@@ -30,6 +30,7 @@ torch = { version = "2.2.2", allow-prereleases = true, markers = "sys_platform =
 ctranslate2 = { version = ">=4.0,<4.4", allow-prereleases = true }
 realtimestt = "0.3.93"
 multiprocess = "^0.70.17"
+notion-client = "^2.3.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

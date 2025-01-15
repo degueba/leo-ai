@@ -4,6 +4,7 @@ import json
 import typer
 import yaml
 import sys
+from typing import Optional
 
 # Add project root to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,6 +20,7 @@ from core.file_operations import (  # noqa: E402
 from core.framework_helpers import get_framework_specific_prompt  # noqa: E402
 from core.utils import open_in_editor  # noqa: E402
 from modules.deepseek import json_prompt  # noqa: E402
+from integrations.notion import list_tasks  # noqa: E402
 
 app = typer.Typer()
 
@@ -238,6 +240,80 @@ def edit_file(
     except Exception as e:
         print(f"DEBUG: Error in edit_file: {e}")
         return "Error: Could not edit file"
+
+
+# -----------------------------------------------------
+# 5) list_notion_tasks
+# -----------------------------------------------------
+@app.command()
+def list_notion_tasks(
+    database_id: Optional[str] = typer.Option(
+        None, "--database-id", help="Notion database ID to fetch tasks from"
+    ),
+    status: Optional[str] = typer.Option(
+        None, "--status", help="Filter by Resolution Details status"
+    ),
+):
+    """Lists all tasks from your Notion database."""
+    try:
+        tasks = list_tasks(database_id)
+
+        if not tasks:
+            typer.echo("No tasks found")
+            return
+
+        # Print header if tasks exist
+        if tasks:
+            typer.echo("\n=== Notion Tasks ===\n")
+
+        for task in tasks:
+            # Filter by status if specified
+            if status and task.get("status", "").lower() != status.lower():
+                continue
+
+            # Main task title and status with color
+            task_line = f"📌 {task['title']}\n"
+            task_line += f"   └─ Status: {task.get('status', 'No status')}\n"
+
+            # Group metadata in a clean indented block
+            metadata = []
+            if task.get("severity"):
+                metadata.append(f"Severity: {task['severity']}")
+            if task.get("type"):
+                metadata.append(f"Type: {task['type']}")
+
+            # People information
+            people = []
+            if task.get("reporter"):
+                people.append(f"Reporter: {task['reporter']}")
+            if task.get("assigned_to"):
+                people.append(f"Assigned To: {task['assigned_to']}")
+
+            # Assigned to
+            if task.get("assigned_to"):
+                people.append(f"Assigned To: {task['assigned_to']}")
+
+            # Dates and URLs
+            extra = []
+            if task.get("date_reported"):
+                extra.append(f"Reported: {task['date_reported']}")
+            if task.get("url"):
+                extra.append(f"URL: {task['url']}")
+
+            # Add metadata blocks with proper indentation
+            if metadata:
+                task_line += f"   ├─ {' | '.join(metadata)}\n"
+            if people:
+                task_line += f"   ├─ {' | '.join(people)}\n"
+            if extra:
+                task_line += f"   └─ {' | '.join(extra)}"
+
+            typer.echo(f"{task_line}\n")
+
+    except ValueError as e:
+        typer.echo(f"Error: {str(e)}", err=True)
+    except Exception as e:
+        typer.echo(f"Failed to fetch tasks: {str(e)}", err=True)
 
 
 # -----------------------------------------------------

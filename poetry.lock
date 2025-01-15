@@ -1423,6 +1423,20 @@ tgrep = ["pyparsing"]
 twitter = ["twython"]
 
 [[package]]
+name = "notion-client"
+version = "2.3.0"
+description = "Python client for the official Notion API"
+optional = false
+python-versions = "<4,>=3.7"
+files = [
+    {file = "notion-client-2.3.0.tar.gz", hash = "sha256:c4b4ae04ce182eb89611d41544dac710049683a4d7309c4b22fde52f81cbcb39"},
+    {file = "notion_client-2.3.0-py2.py3-none-any.whl", hash = "sha256:6696bb057b7872477077d6a3bb4299c4a7924450e7d168174e79cbf8e01d9576"},
+]
+
+[package.dependencies]
+httpx = ">=0.23.0"
+
+[[package]]
 name = "numba"
 version = "0.60.0"
 description = "compiling Python code using LLVM"
@@ -6399,4 +6413,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "eba1baf7b017cca6adf9441a4e1347a1ca47abe0e0655ad6cff2b525059de953"
+content-hash = "22db194346531e23b8c995442509e6ef2f24fc16f179fcaedfbe1a1c878831ce"

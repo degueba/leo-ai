@@ -401,3 +401,281 @@ Multiple matches found:
 4. utility file: frontend/src/utils/filters.ts (confidence: 0.75)
 Which file to edit? (number): DEBUG: Error in edit_file: 
 ```
+
+## Bob Executed Command (2025-01-15 18:39:12)
+
+> Request: Hey Bob, can you list my tasks?
+
+**Bob's Command:** 
+```bash
+python commands/template.py list-notion-tasks
+```
+
+**Output:** 
+```
+• Cookie Consent Button Accessibility Issues [Status: Resolved] [Severity: High] [Reported: 2025-01-07]
+• Profile Security Enhancement [Status: Resolved] [Severity: High] [Reported: 2025-01-07]
+• OAuth Security Implementation [Status: Resolved] [Severity: High] [Reported: 2025-01-07]
+• Password Reset Security Enhancement [Status: Resolved] [Severity: High] [Reported: 2025-01-07]
+• Email Verification Security Implementation [Status: Resolved] [Severity: High] [Reported: 2025-01-07]
+• Cookie Security Enhancement [Status: Resolved] [Severity: High] [Reported: 2025-01-07]
+• JWT Security Implementation [Status: Resolved] [Severity: High] [Reported: 2025-01-07]
+• Create request url [Status: Resolved] [Severity: Medium] [Reporter: Pallavi Baljekar] [Reported: 2024-12-30]
+• Better error handling for the create request [Status: Can't Reproduce] [Severity: High] [Reporter: Pallavi Baljekar] [Reported: 2024-12-30]
+• Services provided in create reuest form is similar to products but involves services. [Status: Can't Reproduce] [Severity: Medium] [Reporter: Pallavi Baljekar] [Reported: 2024-12-30]
+• Ability to see all previous chats  [Status: Can't Reproduce] [Severity: Low] [Reporter: Pallavi Baljekar] [Reported: 2024-12-30]
+• Add functionality to prompt user to clear memory or start a new chat when context length of the chat nears the limit.  [Status: Can't Reproduce] [Severity: Low] [Reporter: Pallavi Baljekar] [Reported: 2024-12-30]
+• Add functionality to create new chats  [Status: Can't Reproduce] [Severity: Medium] [Reporter: Pallavi Baljekar] [Reported: 2024-12-30]
+• Keep a running context window for all of the chatbot  [Status: Can't Reproduce] [Severity: Medium] [Reporter: Pallavi Baljekar] [Reported: 2024-12-30]
+• Change the phone number on the supplier side to company phone num to distinguish it from user phone num on the second page. Add an explanation that the company num is for sales enquires and the other one is for our internal contact use somewhere. [Status: Resolved] [Severity: Low] [Reporter: Pallavi Baljekar] [Reported: 2024-12-27]
+• Remove the  [Status: Resolved] [Severity: Low] [Reporter: Pallavi Baljekar] [Reported: 2024-12-27]
+• Make the error on supplier account field say why it failed to create an account [Status: Resolved] [Severity: Medium] [Reporter: Pallavi Baljekar] [Reported: 2024-12-27]
+• Change all instances of Laibl to LAIBL [Status: Resolved] [Severity: Low] [Reporter: Pallavi Baljekar] [Reported: 2024-12-27]
+• Make all required fields have red asterix next to them [Status: Resolved] [Severity: Low] [Reporter: Pallavi Baljekar] [Reported: 2024-12-27]
+```
+
+## Bob Executed Command (2025-01-15 18:44:09)
+
+> Request: Hey Bob, can you listen to my tasks?
+
+**Bob's Command:** 
+```bash
+python commands/template.py list-notion-tasks
+```
+
+**Output:** 
+```
+
+=== Notion Tasks ===
+
+📌 Cookie Consent Button Accessibility Issues
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Bug']
+   └─ Reported: 2025-01-07
+
+📌 Profile Security Enhancement
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Security']
+   └─ Reported: 2025-01-07
+
+📌 OAuth Security Implementation
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Security']
+   └─ Reported: 2025-01-07
+
+📌 Password Reset Security Enhancement
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Security']
+   └─ Reported: 2025-01-07
+
+📌 Email Verification Security Implementation
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Security']
+   └─ Reported: 2025-01-07
+
+📌 Cookie Security Enhancement
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Security']
+   └─ Reported: 2025-01-07
+
+📌 JWT Security Implementation
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Security']
+   └─ Reported: 2025-01-07
+
+📌 Create request url
+   └─ Status: Resolved
+   ├─ Severity: Medium | Type: ['Enhancement', 'Improvement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30
+
+📌 Better error handling for the create request
+   └─ Status: Can't Reproduce
+   ├─ Severity: High | Type: ['Bug']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30
+
+📌 Services provided in create reuest form is similar to products but involves services.
+   └─ Status: Can't Reproduce
+   ├─ Severity: Medium | Type: ['Bug']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30
+
+📌 Ability to see all previous chats 
+   └─ Status: Can't Reproduce
+   ├─ Severity: Low | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30
+
+📌 Add functionality to prompt user to clear memory or start a new chat when context length of the chat nears the limit. 
+   └─ Status: Can't Reproduce
+   ├─ Severity: Low | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30
+
+📌 Add functionality to create new chats 
+   └─ Status: Can't Reproduce
+   ├─ Severity: Medium | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30
+
+📌 Keep a running context window for all of the chatbot 
+   └─ Status: Can't Reproduce
+   ├─ Severity: Medium | Type: ['Bug']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30
+
+📌 Change the phone number on the supplier side to company phone num to distinguish it from user phone num on the second page. Add an explanation that the company num is for sales enquires and the other one is for our internal contact use somewhere.
+   └─ Status: Resolved
+   ├─ Severity: Low | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-27
+
+📌 Remove the 
+   └─ Status: Resolved
+   ├─ Severity: Low | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-27
+
+📌 Make the error on supplier account field say why it failed to create an account
+   └─ Status: Resolved
+   ├─ Severity: Medium | Type: ['Bug']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-27
+
+📌 Change all instances of Laibl to LAIBL
+   └─ Status: Resolved
+   ├─ Severity: Low | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-27
+
+📌 Make all required fields have red asterix next to them
+   └─ Status: Resolved
+   ├─ Severity: Low | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-27
+
+```
+
+## Bob Executed Command (2025-01-15 18:57:59)
+
+> Request: Hey Bob, can you listen to my tasks?
+
+**Bob's Command:** 
+```bash
+python commands/template.py list-notion-tasks
+```
+
+**Output:** 
+```
+
+=== Notion Tasks ===
+
+📌 Cookie Consent Button Accessibility Issues
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Bug']
+   └─ Reported: 2025-01-07 | URL: https://www.notion.so/Cookie-Consent-Button-Accessibility-Issues-174215e735fd811fbe4de32e7e9e63b8
+
+📌 Profile Security Enhancement
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Security']
+   └─ Reported: 2025-01-07 | URL: https://www.notion.so/Profile-Security-Enhancement-174215e735fd81bc8e29eafacfe97c57
+
+📌 OAuth Security Implementation
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Security']
+   └─ Reported: 2025-01-07 | URL: https://www.notion.so/OAuth-Security-Implementation-174215e735fd81a488f7f58bb87947ba
+
+📌 Password Reset Security Enhancement
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Security']
+   └─ Reported: 2025-01-07 | URL: https://www.notion.so/Password-Reset-Security-Enhancement-174215e735fd81309678cb7ea9dd2259
+
+📌 Email Verification Security Implementation
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Security']
+   └─ Reported: 2025-01-07 | URL: https://www.notion.so/Email-Verification-Security-Implementation-174215e735fd81cd8532d2bcb932d66a
+
+📌 Cookie Security Enhancement
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Security']
+   └─ Reported: 2025-01-07 | URL: https://www.notion.so/Cookie-Security-Enhancement-174215e735fd81d0ad58ff25babf0630
+
+📌 JWT Security Implementation
+   └─ Status: Resolved
+   ├─ Severity: High | Type: ['Security']
+   └─ Reported: 2025-01-07 | URL: https://www.notion.so/JWT-Security-Implementation-174215e735fd81beb391df5db35e6e17
+
+📌 Create request url
+   └─ Status: Resolved
+   ├─ Severity: Medium | Type: ['Enhancement', 'Improvement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30 | URL: https://www.notion.so/Create-request-url-16c215e735fd801bae17dee8c690f789
+
+📌 Better error handling for the create request
+   └─ Status: Can't Reproduce
+   ├─ Severity: High | Type: ['Bug']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30 | URL: https://www.notion.so/Better-error-handling-for-the-create-request-16c215e735fd806aaa54c08417b0908a
+
+📌 Services provided in create reuest form is similar to products but involves services.
+   └─ Status: Can't Reproduce
+   ├─ Severity: Medium | Type: ['Bug']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30 | URL: https://www.notion.so/Services-provided-in-create-reuest-form-is-similar-to-products-but-involves-services-16c215e735fd8047b542cec400f44b3e
+
+📌 Ability to see all previous chats 
+   └─ Status: Can't Reproduce
+   ├─ Severity: Low | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30 | URL: https://www.notion.so/Ability-to-see-all-previous-chats-16c215e735fd80d9bbc6d63f6a2591ab
+
+📌 Add functionality to prompt user to clear memory or start a new chat when context length of the chat nears the limit. 
+   └─ Status: Can't Reproduce
+   ├─ Severity: Low | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30 | URL: https://www.notion.so/Add-functionality-to-prompt-user-to-clear-memory-or-start-a-new-chat-when-context-length-of-the-chat-16c215e735fd80d08767df65c8b27439
+
+📌 Add functionality to create new chats 
+   └─ Status: Can't Reproduce
+   ├─ Severity: Medium | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30 | URL: https://www.notion.so/Add-functionality-to-create-new-chats-16c215e735fd8024b925c9e5f84640cb
+
+📌 Keep a running context window for all of the chatbot 
+   └─ Status: Can't Reproduce
+   ├─ Severity: Medium | Type: ['Bug']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-30 | URL: https://www.notion.so/Keep-a-running-context-window-for-all-of-the-chatbot-16c215e735fd80feb1e2ece1b5069f8b
+
+📌 Change the phone number on the supplier side to company phone num to distinguish it from user phone num on the second page. Add an explanation that the company num is for sales enquires and the other one is for our internal contact use somewhere.
+   └─ Status: Resolved
+   ├─ Severity: Low | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-27 | URL: https://www.notion.so/Change-the-phone-number-on-the-supplier-side-to-company-phone-num-to-distinguish-it-from-user-phone--169215e735fd80c2bab0f1946b7867a3
+
+📌 Remove the 
+   └─ Status: Resolved
+   ├─ Severity: Low | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-27 | URL: https://www.notion.so/Remove-the-https-www-prefix-as-validation-for-website-169215e735fd80c2b4add964a82af4fb
+
+📌 Make the error on supplier account field say why it failed to create an account
+   └─ Status: Resolved
+   ├─ Severity: Medium | Type: ['Bug']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-27 | URL: https://www.notion.so/Make-the-error-on-supplier-account-field-say-why-it-failed-to-create-an-account-169215e735fd80f2a643d34967097dd3
+
+📌 Change all instances of Laibl to LAIBL
+   └─ Status: Resolved
+   ├─ Severity: Low | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-27 | URL: https://www.notion.so/Change-all-instances-of-Laibl-to-LAIBL-169215e735fd814da7f1fc488769a39f
+
+📌 Make all required fields have red asterix next to them
+   └─ Status: Resolved
+   ├─ Severity: Low | Type: ['Enhancement']
+   ├─ Reporter: Pallavi Baljekar
+   └─ Reported: 2024-12-27 | URL: https://www.notion.so/Make-all-required-fields-have-red-asterix-next-to-them-169215e735fd81feae77e2631354906e
+
+```

@@ -132,6 +132,8 @@ The assistant uses a workspace configuration file (`workspace_config.json`) to m
    - Options:
      - `--workspace`: Specify workspace to use
 
+
+
 ### Framework-Specific Features
 The workspace supports both Next.js (frontend) and Django (backend) frameworks:
 
@@ -148,6 +150,84 @@ The workspace supports both Next.js (frontend) and Django (backend) frameworks:
 - Templates in `backend/templates/`
 - Static files in `backend/static/`
 - Configuration in `backend/settings.py`
+
+## Integrations & Integrations Commands
+## Notion Integration
+### Bug Tracker Setup
+To use the Notion integration:
+
+1. Create a Notion integration at https://www.notion.so/my-integrations
+2. Copy the integration token
+3. Add the token to your `.env` file as `NOTION_API_TOKEN`
+4. Share your Notion database with the integration
+5. Copy your database ID (from the database URL) and add it to `.env` as `NOTION_DATABASE_ID`
+
+The database ID is the part of your Notion database URL after the workspace name and before the question mark:
+```
+https://notion.so/workspace/83jk2h3d-721d-4892-8827-9e2d0b8f5d9e?v=...
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                        This is your database ID
+```
+
+### Database Structure
+The integration expects a Notion database with the following properties:
+- Title (title) - Bug report title
+- Resolution Details (select) - Status of the bug
+- Reporter (rich text) - Who reported the bug
+- Description (rich text) - Detailed bug description
+- Severity Level (select) - Bug severity
+- Date Reported (date) - When the bug was reported
+- Issue Type (select) - Type of issue (defaults to "Bug")
+
+### Available Commands
+1. **list_notion_tasks**
+   - Lists all bugs from your Notion database
+   - Usage: `list_notion_tasks [--database-id ID] [--show-url] [--status STATUS]`
+   - Options:
+     - `--database-id`: Optional Notion database ID (defaults to NOTION_DATABASE_ID env var)
+     - `--show-url`: Show Notion page URLs for each task
+     - `--status`: Filter bugs by status
+
+2. **create_bug_report**
+   - Creates a new bug report in Notion
+   - Usage: `create_bug_report <title> [--description DESC] [--status STATUS]`
+   - Arguments:
+     - `title`: Bug report title
+   - Options:
+     - `--description`: Detailed bug description
+     - `--status`: Initial status
+
+3. **update_bug_status**
+   - Updates the status of an existing bug
+   - Usage: `update_bug_status <bug_id> <new_status>`
+   - Arguments:
+     - `bug_id`: Notion page ID of the bug
+     - `new_status`: New status to set
+
+### Example Usage
+```bash
+# List all bugs
+python commands/template.py list-notion-tasks
+
+# List bugs with URLs
+python commands/template.py list-notion-tasks --show-url
+
+# List bugs with specific status
+python commands/template.py list-notion-tasks --status "Can't Reproduce"
+
+# Create a new bug report
+python commands/template.py create-bug-report "Login button not working" --description "Users cannot click the login button" --status "Open"
+
+# Update bug status
+python commands/template.py update-bug-status "83jk2h3d-721d-4892-8827-9e2d0b8f5d9e" "In Progress"
+```
+
+### Environment Variables
+Required environment variables in your `.env` file:
+```bash
+NOTION_API_TOKEN=your_integration_token_here
+NOTION_DATABASE_ID=your_database_id_here
+```
 
 ## Resources
 - LOCAL SPEECH TO TEXT: https://github.com/KoljaB/RealtimeSTT

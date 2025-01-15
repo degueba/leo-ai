@@ -4,8 +4,10 @@
         {
             "label": "Agent: Awaken",
             "type": "shell",
-            "command": "python",
+            "command": "poetry",
             "args": [
+                "run",
+                "python",
                 "main_typer_assistant.py",
                 "awaken",
                 "--typer-file",
@@ -27,8 +29,10 @@
         {
             "label": "Agent: Plan",
             "type": "shell",
-            "command": "python",
+            "command": "poetry",
             "args": [
+                "run",
+                "python",
                 "main_typer_assistant.py",
                 "plan",
                 "--typer-file",
@@ -44,8 +48,10 @@
         {
             "label": "Agent: Execute",
             "type": "shell",
-            "command": "python",
+            "command": "poetry",
             "args": [
+                "run",
+                "python",
                 "main_typer_assistant.py",
                 "execute",
                 "--typer-file",
