@@ -3,7 +3,7 @@
 >
 > Checkout [the demo](https://youtu.be/zoBwIi4ZiTA) where we walk through using this always-on-ai-assistant.
 
-![leo-deepseek-v3.png](./images/leo-ai-deepseek.jpg)
+![leo-ai-deepseek.jpg](./images/leo-ai-deepseek.jpg)
 
 ## Setup
 - `cp .env.sample .env`
