@@ -1,10 +1,10 @@
 from RealtimeSTT import AudioToTextRecorder
-from typing import List
 from modules.assistant_config import get_config
 from modules.base_assistant import PlainAssistant
 from modules.utils import create_session_logger_id, setup_logging
 import typer
-import logging
+import multiprocessing
+import os
 
 app = typer.Typer()
 
@@ -17,6 +17,13 @@ def ping():
 @app.command()
 def chat():
     """Start a chat session with the plain assistant using speech input"""
+    # Set multiprocessing start method
+    multiprocessing.set_start_method("spawn")
+
+    # Set environment variables
+    os.environ["OMP_NUM_THREADS"] = "1"
+    os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
     # Create session and logging
     session_id = create_session_logger_id()
     logger = setup_logging(session_id)

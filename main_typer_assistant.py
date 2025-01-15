@@ -1,10 +1,11 @@
 from RealtimeSTT import AudioToTextRecorder
 from modules.assistant_config import get_config
 from modules.typer_agent import TyperAgent
-from modules.utils import create_session_logger_id, setup_logging
-import logging
 import typer
 from typing import List
+import traceback
+from datetime import datetime
+import multiprocessing
 import os
 
 app = typer.Typer()
@@ -17,62 +18,40 @@ def ping():
 
 @app.command()
 def awaken(
-    typer_file: str = typer.Option(
-        ..., "--typer-file", "-f", help="Path to typer commands file"
-    ),
-    scratchpad: str = typer.Option(
-        ..., "--scratchpad", "-s", help="Path to scratchpad file"
-    ),
-    context_files: List[str] = typer.Option(
-        [], "--context", "-c", help="List of context files"
-    ),
-    mode: str = typer.Option(
-        "default",
-        "--mode",
-        "-m",
-        help="Options: ('default', 'execute', 'execute-no-scratch'). Execution mode: default (no exec), execute (exec + scratch), execute-no-scratch (exec only)",
-    ),
+    typer_file: str = typer.Option(...),
+    scratchpad: str = typer.Option(...),
+    context_files: List[str] = typer.Option([]),
+    mode: str = typer.Option("default"),
 ):
     """Run STT interface that processes speech into typer commands"""
-    # Remove the list concatenation - pass scratchpad as a single string
+
+    # Set multiprocessing start method
+    multiprocessing.set_start_method("spawn")
+
+    # Set environment variables
+    os.environ["OMP_NUM_THREADS"] = "1"
+    os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
     assistant, typer_file, _ = TyperAgent.build_agent(typer_file, [scratchpad])
 
     print("🎤 Speak now... (press Ctrl+C to exit)")
 
     recorder = AudioToTextRecorder(
-        spinner=False,
-        # wake_words="deep" # specific wake words to trigger the assistant using the realtime-stt library. we do this manually below so we can use any word.
-        # realtime_processing_pause=0.3,
-        post_speech_silence_duration=1.5,  # how long to wait after speech ends before processing
-        # compute_type="int8",
-        compute_type="float32",
-        model="tiny.en",  # VERY fast (.5s), but not accurate
-        # model="small.en",  # decent speed (1.5s), improved accuracy
-        # Beam size controls how many alternative transcription paths are explored
-        # Higher values = more accurate but slower, lower values = faster but less accurate
-        # beam_size=3,
-        # beam_size=5,
-        beam_size=8,
-        # Batch size controls how many audio chunks are processed together
-        # Higher values = faster processing but uses more memory, lower values = slower processing but uses less memory
-        batch_size=25,
-        # model="large-v3",  # very slow, but accurate
-        # model="distil-large-v3", # very slow (but faster than large-v3) but accurate
-        # realtime_model_type="tiny.en", # realtime models are used for the on_realtime_transcription_update() callback
-        # realtime_model_type="large-v3",
+        model="tiny.en",
         language="en",
         print_transcription_time=True,
-        # enable_realtime_transcription=True,
-        # on_realtime_transcription_update=lambda text: print(
-        #     f"🎤 on_realtime_transcription_update(): {text}"
-        # ),
-        # on_realtime_transcription_stabilized=lambda text: print(
-        #     f"🎤 on_realtime_transcription_stabilized(): {text}"
-        # ),
-        # on_recorded_chunk=lambda chunk: print(f"🎤 on_recorded_chunk(): {chunk}"),
-        # on_transcription_start=lambda: print("🎤 on_transcription_start()"),
-        # on_recording_stop=lambda: print("🎤 on_transcription_stop()"),
-        # on_recording_start=lambda: print("🎤 on_recording_start()"),
+        spinner=False,
+        device="cpu",
+        enable_realtime_transcription=True,
+        realtime_processing_pause=0.1,
+        post_speech_silence_duration=1.5,
+        compute_type="float32",
+        beam_size=8,
+        batch_size=25,
+        on_recording_start=lambda: print("🎤 Recording started..."),
+        on_recording_stop=lambda: print("🎤 Recording stopped"),
+        on_vad_detect_start=lambda: print("🎤 Voice detected"),
+        on_vad_detect_stop=lambda: print("🎤 Voice ended"),
     )
 
     def process_text(text):
@@ -84,13 +63,45 @@ def awaken(
                 return
 
             recorder.stop()
+            print("🤖 Processing command...")
             output = assistant.process_text(
                 text, typer_file, scratchpad, context_files, mode
             )
             print(f"🤖 Response:\n{output}")
             recorder.start()
         except Exception as e:
-            print(f"❌ Error: {str(e)}")
+            # Create a visually distinct error block
+            print("\n" + "❌" * 40)
+            print("❌ ERROR DETECTED")
+            print("❌" * 40)
+            print(f"\nError Type: {type(e).__name__}")
+            print(f"Error Message: {str(e)}")
+            print("\n🧐 Context:")
+            print(f"- Input Text: {text}")
+            print(f"- Mode: {mode}")
+            print(f"- Typer File: {typer_file}")
+            print(f"- Scratchpad: {scratchpad}")
+            print(f"- Context Files: {context_files}")
+
+            # Print the traceback directly to console
+            print("\n🔍 Full Traceback:")
+            traceback.print_exc()
+
+            # Still log to file for persistence
+            with open("error_log.txt", "a") as f:
+                f.write(f"\n\n[{datetime.now()}] ERROR DETAILS\n")
+                f.write(f"Input Text: {text}\n")
+                f.write(f"Error Type: {type(e).__name__}\n")
+                f.write(f"Error Message: {str(e)}\n")
+                f.write("Traceback:\n")
+                traceback.print_exc(file=f)
+
+            print("\n🤖 Attempting to restart recorder...")
+            try:
+                recorder.start()
+            except Exception as restart_error:
+                print(f"⚠️ Failed to restart recorder: {str(restart_error)}")
+            print("\n" + "❌" * 40 + "\n")
 
     while True:
         recorder.text(process_text)

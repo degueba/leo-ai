@@ -6,7 +6,7 @@
 
 **Ada's Command:** 
 ```bash
-uv run python commands/template.py list-users --role viewer
+poetry run python commands/template.py list-users --role viewer
 ```
 
 **Output:** 
@@ -40,7 +40,7 @@ user_4
 
 **Ada's Command:** 
 ```bash
-uv run python commands/template.py create-user Alex --role viewer && uv run python commands/template.py create-user Mary --role editor && uv run python commands/template.py create-user Steve --role admin && uv run python commands/template.py delete-user user_11 --confirm && uv run python commands/template.py delete-user user_22 --confirm && uv run python commands/template.py delete-user user_4 --confirm
+poetry run python commands/template.py create-user Alex --role viewer && poetry run python commands/template.py create-user Mary --role editor && poetry run python commands/template.py create-user Steve --role admin && poetry run python commands/template.py delete-user user_11 --confirm && poetry run python commands/template.py delete-user user_22 --confirm && poetry run python commands/template.py delete-user user_4 --confirm
 ```
 
 **Output:** 
@@ -59,7 +59,7 @@ No user found with ID user_4.
 
 **Ada's Command:** 
 ```bash
-uv run python commands/template.py delete-user 11 --confirm && uv run python commands/template.py delete-user 22 --confirm && uv run python commands/template.py delete-user 4 --confirm
+poetry run python commands/template.py delete-user 11 --confirm && poetry run python commands/template.py delete-user 22 --confirm && poetry run python commands/template.py delete-user 4 --confirm
 ```
 
 **Output:** 
@@ -75,7 +75,7 @@ User with ID 4 deleted.
 
 **Ada's Command:** 
 ```bash
-uv run python commands/template.py list-users --role viewer
+poetry run python commands/template.py list-users --role viewer
 ```
 
 **Output:** 
@@ -97,7 +97,7 @@ Users:
 
 **Ada's Command:** 
 ```bash
-uv run python commands/template.py ping-server
+poetry run python commands/template.py ping-server
 ```
 
 **Output:** 
@@ -111,7 +111,7 @@ Server pinged. Response time: 276 ms.
 
 **Ada's Command:** 
 ```bash
-uv run python commands/template.py ping-server --wait
+poetry run python commands/template.py ping-server --wait
 ```
 
 **Output:** 

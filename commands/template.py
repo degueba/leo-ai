@@ -1,15 +1,11 @@
-import typer
-from typing import Optional
+import difflib
+import shutil
 import sqlite3
 import os
 import json
-import csv
-import difflib
 import random
-import string
-import shutil
 from datetime import datetime
-
+import typer
 import yaml
 
 app = typer.Typer()
@@ -92,7 +88,8 @@ def create_db_if_not_exists():
             status = random.choice(statuses)
             created_at = datetime.now().isoformat()
             cur.execute(
-                "INSERT INTO tasks (task_name, priority, status, created_at) VALUES (?, ?, ?, ?)",
+                "INSERT INTO tasks (task_name, priority, status, created_at) "
+                "VALUES (?, ?, ?, ?)",
                 (task_name, priority, status, created_at),
             )
 
@@ -456,7 +453,10 @@ def upload_file(
         return msg
 
     # Mock upload
-    result = f"File '{file_path}' uploaded to '{destination}' using {'secure' if secure else 'insecure'} mode."
+    result = (
+        f"File '{file_path}' uploaded to '{destination}' using "
+        "{'secure' if secure else 'insecure'} mode."
+    )
     typer.echo(result)
     return result
 
@@ -600,7 +600,10 @@ def encrypt_data(
     with open(output_path, "w") as f:
         f.write(encrypted)
 
-    result = f"Data from {input_path} encrypted with {algorithm} (mock) and saved to {output_path}."
+    result = (
+        f"Data from {input_path} encrypted with {algorithm} (mock) and "
+        f"saved to {output_path}."
+    )
     typer.echo(result)
     return result
 
@@ -684,14 +687,19 @@ def queue_task(
     cur = conn.cursor()
     now = datetime.now().isoformat()
     cur.execute(
-        "INSERT INTO tasks (task_name, priority, status, created_at) VALUES (?, ?, ?, ?)",
+        "INSERT INTO tasks "
+        "(task_name, priority, status, created_at) "
+        "VALUES (?, ?, ?, ?)",
         (task_name, priority, "pending", now),
     )
     conn.commit()
     task_id = cur.lastrowid
     conn.close()
 
-    result = f"Task '{task_name}' queued with priority {priority}, delay {delay}s, assigned ID {task_id}."
+    result = (
+        f"Task '{task_name}' queued with priority {priority}, "
+        f"delay {delay}s, assigned ID {task_id}."
+    )
     typer.echo(result)
     return result
 
@@ -751,9 +759,15 @@ def list_tasks(
     conn = get_connection()
     cur = conn.cursor()
     if show_all:
-        sql = f"SELECT id, task_name, priority, status, created_at FROM tasks ORDER BY {sort_by} ASC"
+        sql = (
+            "SELECT id, task_name, priority, status, created_at "
+            "FROM tasks ORDER BY {sort_by} ASC"
+        )
     else:
-        sql = f"SELECT id, task_name, priority, status, created_at FROM tasks WHERE status != 'complete' ORDER BY {sort_by} ASC"
+        sql = (
+            "SELECT id, task_name, priority, status, created_at "
+            "FROM tasks WHERE status != 'complete' ORDER BY {sort_by} ASC"
+        )
 
     cur.execute(sql)
     tasks = cur.fetchall()
@@ -807,7 +821,11 @@ def inspect_task(
     if json_output:
         result = json.dumps(task_dict, indent=2)
     else:
-        result = f"Task ID={task_dict['id']}, Name={task_dict['task_name']}, Priority={task_dict['priority']}, Status={task_dict['status']}, Created={task_dict['created_at']}"
+        result = (
+            f"Task ID={task_dict['id']}, Name={task_dict['task_name']}, "
+            f"Priority={task_dict['priority']}, Status={task_dict['status']}, "
+            f"Created={task_dict['created_at']}"
+        )
     typer.echo(result)
     return result
 

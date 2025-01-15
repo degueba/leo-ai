@@ -1,26 +1,36 @@
-[project]
-name = "paic-python-starter"
+[tool.poetry]
+name = "neo-ai-assistant"
 version = "0.1.1"
-description = "PAIC Python Starter"
+description = "Neo AI Assistant"
 readme = "README.md"
-requires-python = ">=3.10,<3.12"
-dependencies = [
-    "anthropic>=0.39.0",
-    "google-generativeai>=0.8.3",
-    "llm>=0.18",
-    "llm-claude-3>=0.9",
-    "llm-gemini>=0.4.2",
-    "ollama>=0.4.1",
-    "openai[realtime]>=1.59.0",
-    "pydantic>=2.10.2",
-    "pytest>=8.3.3",
-    "python-dotenv>=1.0.1",
-    "pyyaml>=6.0.2",
-    "typer>=0.13.1",
-    "rich>=13.9.4",
-    "realtimestt>=0.3.93",
-    "dpath>=2.2.0",
-    "elevenlabs>=1.50.3",
-    "realtimetts[system]==0.4.40",
-    "pyttsx3>=2.98",
-]
+authors = ["Rodrigo Botelho <botelhodeveloper@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+anthropic = ">=0.39.0"
+google-generativeai = ">=0.8.3"
+llm = ">=0.18"
+llm-claude-3 = ">=0.9"
+llm-gemini = ">=0.4.2"
+ollama = ">=0.4.1"
+openai = {extras = ["realtime"], version = ">=1.59.0"}
+pydantic = ">=2.10.2"
+pytest = ">=8.3.3"
+python-dotenv = ">=1.0.1"
+pyyaml = ">=6.0.2"
+typer = ">=0.13.1"
+rich = ">=13.9.4"
+dpath = ">=2.2.0"
+elevenlabs = ">=1.50.3"
+realtimetts = {extras = ["system"], version = "==0.4.40"}
+pyttsx3 = ">=2.98"
+# Use this configuration for macOS
+torch = { version = "2.2.2", allow-prereleases = true, markers = "sys_platform == 'darwin'" }
+ctranslate2 = { version = ">=4.0,<4.4", allow-prereleases = true }
+realtimestt = "0.3.93"
+multiprocess = "^0.70.17"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
