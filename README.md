@@ -53,10 +53,10 @@ The assistant uses a workspace configuration file (`workspace_config.json`) to m
 
 ```json
 {
-    "current_workspace": "laibl",
+    "current_workspace": "your_workspace_name",
     "workspaces": {
-        "laibl": {
-            "path": "/Users/rodrigosilva/Documents/Work/Projects/laibl",
+        "your_workspace_name": {
+            "path": "/path/to/your/workspace",
             "frameworks": {
                 "frontend": {
                     "type": "nextjs",
