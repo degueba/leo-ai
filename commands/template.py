@@ -1,12 +1,24 @@
 import difflib
-import shutil
-import sqlite3
 import os
 import json
-import random
-from datetime import datetime
 import typer
 import yaml
+import sys
+
+# Add project root to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_root)
+
+# Now you can import modules
+from core.config import get_workspaces  # noqa: E402
+from core.file_operations import (  # noqa: E402
+    _cache_recent_file,
+    _get_recent_files,
+    get_codebase_structure,
+)
+from core.framework_helpers import get_framework_specific_prompt  # noqa: E402
+from core.utils import open_in_editor  # noqa: E402
+from modules.deepseek import json_prompt  # noqa: E402
 
 app = typer.Typer()
 
@@ -15,148 +27,13 @@ app = typer.Typer()
 # -----------------------------------------------------
 DB_NAME = "app_data.db"
 
+RECENT_FILES_CACHE = os.path.join(os.path.dirname(__file__), ".recent_files")
 
-def get_connection():
-    """Return a connection to the SQLite database."""
-    return sqlite3.connect(DB_NAME)
-
-
-def create_db_if_not_exists():
-    """Create tables if they do not exist and seed them with mock data."""
-    conn = get_connection()
-    cur = conn.cursor()
-
-    # Create a sample 'users' table
-    cur.execute(
-        """
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        role TEXT NOT NULL,
-        created_at TEXT NOT NULL
-    )
-    """
-    )
-
-    # Create a sample 'tasks' table
-    cur.execute(
-        """
-    CREATE TABLE IF NOT EXISTS tasks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        task_name TEXT NOT NULL,
-        priority INTEGER NOT NULL,
-        status TEXT NOT NULL,
-        created_at TEXT NOT NULL
-    )
-    """
-    )
-
-    # Create a sample 'logs' table
-    cur.execute(
-        """
-    CREATE TABLE IF NOT EXISTS logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        message TEXT NOT NULL,
-        level TEXT NOT NULL,
-        created_at TEXT NOT NULL
-    )
-    """
-    )
-
-    # Check if 'users' table has data; if not, seed 25 rows
-    cur.execute("SELECT COUNT(*) FROM users")
-    user_count = cur.fetchone()[0]
-    if user_count == 0:
-        roles = ["guest", "admin", "editor", "viewer"]
-        for i in range(25):
-            username = f"user_{i}"
-            role = random.choice(roles)
-            created_at = datetime.now().isoformat()
-            cur.execute(
-                "INSERT INTO users (username, role, created_at) VALUES (?, ?, ?)",
-                (username, role, created_at),
-            )
-
-    # Seed 'tasks' table
-    cur.execute("SELECT COUNT(*) FROM tasks")
-    task_count = cur.fetchone()[0]
-    if task_count == 0:
-        statuses = ["pending", "in-progress", "complete"]
-        for i in range(25):
-            task_name = f"task_{i}"
-            priority = random.randint(1, 5)
-            status = random.choice(statuses)
-            created_at = datetime.now().isoformat()
-            cur.execute(
-                "INSERT INTO tasks (task_name, priority, status, created_at) "
-                "VALUES (?, ?, ?, ?)",
-                (task_name, priority, status, created_at),
-            )
-
-    # Seed 'logs' table
-    cur.execute("SELECT COUNT(*) FROM logs")
-    logs_count = cur.fetchone()[0]
-    if logs_count == 0:
-        levels = ["INFO", "WARN", "ERROR", "DEBUG"]
-        for i in range(25):
-            message = f"Log entry number {i}"
-            level = random.choice(levels)
-            created_at = datetime.now().isoformat()
-            cur.execute(
-                "INSERT INTO logs (message, level, created_at) VALUES (?, ?, ?)",
-                (message, level, created_at),
-            )
-
-    conn.commit()
-    conn.close()
-
-
-# Ensure the database and tables exist before we do anything
-create_db_if_not_exists()
+WORKSPACE_CONFIG = os.path.join(project_root, "workspace_config.json")
 
 
 # -----------------------------------------------------
-# Simple Caesar cipher for “encryption/decryption” demo
-# -----------------------------------------------------
-def caesar_cipher_encrypt(plaintext: str, shift: int = 3) -> str:
-    """A simple Caesar cipher encryption function."""
-    result = []
-    for ch in plaintext:
-        if ch.isalpha():
-            start = ord("A") if ch.isupper() else ord("a")
-            offset = (ord(ch) - start + shift) % 26
-            result.append(chr(start + offset))
-        else:
-            result.append(ch)
-    return "".join(result)
-
-
-def caesar_cipher_decrypt(ciphertext: str, shift: int = 3) -> str:
-    """A simple Caesar cipher decryption function."""
-    return caesar_cipher_encrypt(ciphertext, -shift)
-
-
-# -----------------------------------------------------
-# 1) ping_server
-# -----------------------------------------------------
-@app.command()
-def ping_server(
-    wait: bool = typer.Option(False, "--wait", help="Wait for server response?")
-):
-    """
-    Pings the server, optionally waiting for a response.
-    """
-    # Mock a server response time
-    response_time_ms = random.randint(50, 300)
-    result = f"Server pinged. Response time: {response_time_ms} ms."
-    if wait:
-        result += " (Waited for a response.)"
-    typer.echo(result)
-    return result
-
-
-# -----------------------------------------------------
-# 2) show_config
+# 1) show_config
 # -----------------------------------------------------
 @app.command()
 def show_config(
@@ -185,7 +62,7 @@ def show_config(
 
 
 # -----------------------------------------------------
-# 3) list_files
+# 2) list_files
 # -----------------------------------------------------
 @app.command()
 def list_files(
@@ -210,332 +87,7 @@ def list_files(
 
 
 # -----------------------------------------------------
-# 3.5) list_users
-# -----------------------------------------------------
-@app.command()
-def list_users(
-    role: str = typer.Option(None, "--role", help="Filter users by role"),
-    sort: str = typer.Option(
-        "username", "--sort", help="Sort by field (username, role, created_at)"
-    ),
-):
-    """
-    Lists all users, optionally filtered by role and sorted by specified field.
-    """
-    conn = get_connection()
-    cur = conn.cursor()
-
-    query = "SELECT username, role, created_at FROM users"
-    params = []
-
-    if role:
-        query += " WHERE role = ?"
-        params.append(role)
-
-    query += f" ORDER BY {sort}"
-
-    cur.execute(query, params)
-    users = cur.fetchall()
-    conn.close()
-
-    if not users:
-        result = "No users found."
-        typer.echo(result)
-        return result
-
-    # Format output
-    result = "Users:\n"
-    for user in users:
-        result += f"- {user[0]} (Role: {user[1]}, Created: {user[2]})\n"
-
-    typer.echo(result)
-    return result
-
-
-# -----------------------------------------------------
-# 4) create_user
-# -----------------------------------------------------
-@app.command()
-def create_user(
-    username: str = typer.Argument(..., help="Name of the new user"),
-    role: str = typer.Option("guest", "--role", help="Role for the new user"),
-):
-    """
-    Creates a new user with an optional role.
-    """
-    conn = get_connection()
-    cur = conn.cursor()
-    now = datetime.now().isoformat()
-    cur.execute(
-        "INSERT INTO users (username, role, created_at) VALUES (?, ?, ?)",
-        (username, role, now),
-    )
-    conn.commit()
-    conn.close()
-    result = f"User '{username}' created with role '{role}'."
-    typer.echo(result)
-    return result
-
-
-# -----------------------------------------------------
-# 5) delete_user
-# -----------------------------------------------------
-@app.command()
-def delete_user(
-    user_id: str = typer.Argument(..., help="ID of user to delete"),
-    confirm: bool = typer.Option(False, "--confirm", help="Skip confirmation prompt"),
-):
-    """
-    Deletes a user by ID.
-    """
-    if not confirm:
-        # In a real scenario, you'd prompt or handle differently
-        typer.echo(f"Confirmation needed to delete user {user_id}. Use --confirm.")
-        return f"Deletion of user {user_id} not confirmed."
-
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM users WHERE id = ?", (user_id,))
-    conn.commit()
-    changes = cur.rowcount
-    conn.close()
-
-    if changes > 0:
-        msg = f"User with ID {user_id} deleted."
-    else:
-        msg = f"No user found with ID {user_id}."
-    typer.echo(msg)
-    return msg
-
-
-# -----------------------------------------------------
-# 6) generate_report
-# -----------------------------------------------------
-@app.command()
-def generate_report(
-    table_name: str = typer.Argument(..., help="Name of table to generate report from"),
-    output_file: str = typer.Option("report.json", "--output", help="Output file name"),
-):
-    """
-    Generates a report from an existing database table and saves it to a file.
-    """
-    conn = get_connection()
-    cur = conn.cursor()
-
-    # Get all data from the specified table
-    cur.execute(f"SELECT * FROM {table_name}")
-    rows = cur.fetchall()
-
-    # Get column names from cursor description
-    columns = [description[0] for description in cur.description]
-
-    # Convert rows to list of dicts with column names
-    data = []
-    for row in rows:
-        data.append(dict(zip(columns, row)))
-
-    report_data = {
-        "table": table_name,
-        "timestamp": datetime.now().isoformat(),
-        "columns": columns,
-        "row_count": len(rows),
-        "data": data,
-    }
-
-    with open(output_file, "w") as f:
-        json.dump(report_data, f, indent=2)
-
-    conn.close()
-
-    result = f"Report for table '{table_name}' generated and saved to {output_file}."
-    typer.echo(result)
-    typer.echo(json.dumps(report_data, indent=2))
-    return report_data
-
-
-# -----------------------------------------------------
-# 7) backup_data
-# -----------------------------------------------------
-@app.command()
-def backup_data(
-    directory: str = typer.Argument(..., help="Directory to store backups"),
-    full: bool = typer.Option(False, "--full", help="Perform a full backup"),
-):
-    """
-    Back up data to a specified directory, optionally performing a full backup.
-    """
-    if not os.path.isdir(directory):
-        os.makedirs(directory)
-
-    backup_file = os.path.join(
-        directory, f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
-    )
-    shutil.copy(DB_NAME, backup_file)
-
-    result = (
-        f"{'Full' if full else 'Partial'} backup completed. Saved to {backup_file}."
-    )
-    typer.echo(result)
-    return result
-
-
-# -----------------------------------------------------
-# 8) restore_data
-# -----------------------------------------------------
-@app.command()
-def restore_data(
-    file_path: str = typer.Argument(..., help="File path of backup to restore"),
-    overwrite: bool = typer.Option(
-        False, "--overwrite", help="Overwrite existing data"
-    ),
-):
-    """
-    Restores data from a backup file.
-    """
-    if not os.path.isfile(file_path):
-        msg = f"Backup file {file_path} does not exist."
-        typer.echo(msg)
-        return msg
-
-    if not overwrite:
-        msg = "Overwrite not confirmed. Use --overwrite to proceed."
-        typer.echo(msg)
-        return msg
-
-    shutil.copy(file_path, DB_NAME)
-    msg = f"Data restored from {file_path} to {DB_NAME}."
-    typer.echo(msg)
-    return msg
-
-
-# -----------------------------------------------------
-# 9) summarize_logs
-# -----------------------------------------------------
-@app.command()
-def summarize_logs(
-    logs_path: str = typer.Argument(..., help="Path to log files"),
-    lines: int = typer.Option(100, "--lines", help="Number of lines to summarize"),
-):
-    """
-    Summarizes log data from a specified path, limiting lines.
-    """
-    if not os.path.isfile(logs_path):
-        msg = f"Log file {logs_path} not found."
-        typer.echo(msg)
-        return msg
-
-    with open(logs_path, "r") as f:
-        all_lines = f.readlines()
-
-    snippet = all_lines[:lines]
-    result = f"Showing first {lines} lines from {logs_path}:\n" + "".join(snippet)
-    typer.echo(result)
-    return result
-
-
-# -----------------------------------------------------
-# 10) upload_file
-# -----------------------------------------------------
-@app.command()
-def upload_file(
-    file_path: str = typer.Argument(..., help="Path of file to upload"),
-    destination: str = typer.Option(
-        "remote", "--destination", help="Destination label"
-    ),
-    secure: bool = typer.Option(True, "--secure", help="Use secure upload"),
-):
-    """
-    Uploads a file to a destination, optionally enforcing secure upload.
-    """
-    if not os.path.isfile(file_path):
-        msg = f"File {file_path} not found."
-        typer.echo(msg)
-        return msg
-
-    # Mock upload
-    result = (
-        f"File '{file_path}' uploaded to '{destination}' using "
-        "{'secure' if secure else 'insecure'} mode."
-    )
-    typer.echo(result)
-    return result
-
-
-# -----------------------------------------------------
-# 11) download_file
-# -----------------------------------------------------
-@app.command()
-def download_file(
-    url: str = typer.Argument(..., help="URL of file to download"),
-    output_path: str = typer.Option(".", "--output", help="Local output path"),
-    retry: int = typer.Option(3, "--retry", help="Number of times to retry"),
-):
-    """
-    Downloads a file from a URL with a specified number of retries.
-    """
-    # In real scenario, you'd do requests, etc. We'll just mock it.
-    filename = os.path.join(output_path, os.path.basename(url))
-    with open(filename, "w") as f:
-        f.write("Downloaded data from " + url)
-
-    result = f"File downloaded from {url} to {filename} with {retry} retries allowed."
-    typer.echo(result)
-    return result
-
-
-# -----------------------------------------------------
-# 12) filter_records
-# -----------------------------------------------------
-@app.command()
-def filter_records(
-    source: str = typer.Argument(..., help="Data source to filter"),
-    query: str = typer.Option("", "--query", help="Filtering query string"),
-    limit: int = typer.Option(10, "--limit", help="Limit the number of results"),
-):
-    """
-    Filters records from a data source using a query, limiting the number of results.
-    Example usage: filter_records table_name --query "admin" --limit 5
-    """
-    conn = get_connection()
-    cur = conn.cursor()
-
-    # For demonstration, we'll assume the 'source' is a table name in the DB
-    # and the 'query' is a substring to match against username or message, etc.
-    # This is just a simple example.
-    try:
-        sql = f"SELECT * FROM {source} WHERE "
-        if source == "users":
-            sql += "username LIKE ?"
-        elif source == "logs":
-            sql += "message LIKE ?"
-        elif source == "tasks":
-            sql += "task_name LIKE ?"
-        else:
-            typer.echo(f"Unknown table: {source}")
-            return f"Table '{source}' not recognized."
-
-        sql += f" LIMIT {limit}"
-
-        wildcard_query = f"%{query}%"
-        cur.execute(sql, (wildcard_query,))
-        rows = cur.fetchall()
-
-        result = (
-            f"Found {len(rows)} records in '{source}' with query '{query}'.\n{rows}"
-        )
-        typer.echo(result)
-        return result
-
-    except sqlite3.OperationalError as e:
-        msg = f"SQL error: {e}"
-        typer.echo(msg)
-        return msg
-    finally:
-        conn.close()
-
-
-# -----------------------------------------------------
-# 16) compare_files
+# 3) compare_files
 # -----------------------------------------------------
 @app.command()
 def compare_files(
@@ -575,259 +127,105 @@ def compare_files(
 
 
 # -----------------------------------------------------
-# 17) encrypt_data
+# 4) edit_file
 # -----------------------------------------------------
 @app.command()
-def encrypt_data(
-    input_path: str = typer.Argument(..., help="Path of the file to encrypt"),
-    output_path: str = typer.Option("encrypted.bin", "--output", help="Output file"),
-    algorithm: str = typer.Option("AES", "--algorithm", help="Encryption algorithm"),
-):
-    """
-    Encrypts data using a specified algorithm (mocked by Caesar cipher here).
-    """
-    if not os.path.isfile(input_path):
-        msg = f"File {input_path} not found."
-        typer.echo(msg)
-        return msg
-
-    with open(input_path, "r") as f:
-        data = f.read()
-
-    # We'll just mock the encryption using Caesar cipher
-    encrypted = caesar_cipher_encrypt(data, 3)
-
-    with open(output_path, "w") as f:
-        f.write(encrypted)
-
-    result = (
-        f"Data from {input_path} encrypted with {algorithm} (mock) and "
-        f"saved to {output_path}."
-    )
-    typer.echo(result)
-    return result
-
-
-# -----------------------------------------------------
-# 18) decrypt_data
-# -----------------------------------------------------
-@app.command()
-def decrypt_data(
-    encrypted_file: str = typer.Argument(..., help="Path to encrypted file"),
-    key: str = typer.Option(..., "--key", help="Decryption key"),
-    output_path: str = typer.Option("decrypted.txt", "--output", help="Output file"),
-):
-    """
-    Decrypts an encrypted file using a key (ignored in this mock Caesar cipher).
-    """
-    if not os.path.isfile(encrypted_file):
-        msg = f"Encrypted file {encrypted_file} not found."
-        typer.echo(msg)
-        return msg
-
-    with open(encrypted_file, "r") as f:
-        encrypted_data = f.read()
-
-    # Key is ignored in this Caesar cipher demo
-    decrypted = caesar_cipher_decrypt(encrypted_data, 3)
-
-    with open(output_path, "w") as f:
-        f.write(decrypted)
-
-    result = f"Data from {encrypted_file} decrypted and saved to {output_path}."
-    typer.echo(result)
-    return result
-
-
-# -----------------------------------------------------
-# 21) migrate_database
-# -----------------------------------------------------
-@app.command()
-def migrate_database(
-    old_db: str = typer.Argument(..., help="Path to old database"),
-    new_db: str = typer.Option(..., "--new-db", help="Path to new database"),
-    dry_run: bool = typer.Option(
-        False, "--dry-run", help="Perform a trial run without changing data"
+def edit_file(
+    file_description: str = typer.Argument(..., help="Description of file to edit"),
+    context: str = typer.Option(
+        "", "--context", help="Additional context about the file"
     ),
+    workspace: str = typer.Option(None, "--workspace", help="Specify workspace to use"),
 ):
-    """
-    Migrates data from an old database to a new one, optionally doing a dry run.
-    """
-    if not os.path.isfile(old_db):
-        msg = f"Old database '{old_db}' not found."
-        typer.echo(msg)
-        return msg
-
-    if dry_run:
-        result = f"Dry run: would migrate {old_db} to {new_db}."
-        typer.echo(result)
-        return result
-
-    shutil.copy(old_db, new_db)
-    result = f"Database migrated from {old_db} to {new_db}."
-    typer.echo(result)
-    return result
-
-
-# -----------------------------------------------------
-# 27) queue_task
-# -----------------------------------------------------
-@app.command()
-def queue_task(
-    task_name: str = typer.Argument(..., help="Name of the task to queue"),
-    priority: int = typer.Option(1, "--priority", help="Priority of the task"),
-    delay: int = typer.Option(
-        0, "--delay", help="Delay in seconds before starting task"
-    ),
-):
-    """
-    Queues a task with a specified priority and optional delay.
-    """
-    conn = get_connection()
-    cur = conn.cursor()
-    now = datetime.now().isoformat()
-    cur.execute(
-        "INSERT INTO tasks "
-        "(task_name, priority, status, created_at) "
-        "VALUES (?, ?, ?, ?)",
-        (task_name, priority, "pending", now),
-    )
-    conn.commit()
-    task_id = cur.lastrowid
-    conn.close()
-
-    result = (
-        f"Task '{task_name}' queued with priority {priority}, "
-        f"delay {delay}s, assigned ID {task_id}."
-    )
-    typer.echo(result)
-    return result
-
-
-# -----------------------------------------------------
-# 28) remove_task
-# -----------------------------------------------------
-@app.command()
-def remove_task(
-    task_id: str = typer.Argument(..., help="ID of the task to remove"),
-    force: bool = typer.Option(False, "--force", help="Remove without confirmation"),
-):
-    """
-    Removes a queued task by ID, optionally forcing removal without confirmation.
-    """
-    if not force:
-        msg = f"Confirmation required to remove task {task_id}. Use --force."
-        typer.echo(msg)
-        return msg
-
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
-    conn.commit()
-    removed = cur.rowcount
-    conn.close()
-
-    if removed:
-        msg = f"Task {task_id} removed."
+    # Get workspace config
+    workspaces = get_workspaces()
+    if workspace:
+        workspace_config = workspaces["workspaces"].get(workspace)
+        if not workspace_config:
+            return f"Workspace '{workspace}' not found"
+        project_root = workspace_config["path"]  # Extract the path string
     else:
-        msg = f"Task {task_id} not found."
-    typer.echo(msg)
-    return msg
+        # Use current project root if no workspace specified
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        workspace_config = {"frameworks": {}}
 
+    print(f"========== Project Selected: {project_root}")
+    print(f"========== Starting edit_file with: {file_description}, {context}")
 
-# -----------------------------------------------------
-# 29) list_tasks
-# -----------------------------------------------------
-@app.command()
-def list_tasks(
-    show_all: bool = typer.Option(
-        False, "--all", help="Show all tasks, including completed"
-    ),
-    sort_by: str = typer.Option(
-        "priority", "--sort-by", help="Sort tasks by this field"
-    ),
-):
-    """
-    Lists tasks, optionally including completed tasks or sorting by a different field.
-    """
-    valid_sort_fields = ["priority", "status", "created_at"]
-    if sort_by not in valid_sort_fields:
-        msg = f"Invalid sort field. Must be one of {valid_sort_fields}."
-        typer.echo(msg)
-        return msg
+    # Check for recent files request
+    if "recent" in file_description.lower():
+        print("Handling recent files request")  # Debug print
+        recent_files = _get_recent_files()
+        if recent_files:
+            typer.echo("Recent files:")
+            for i, file_path in enumerate(recent_files[:5]):
+                typer.echo(f"{i+1}. {file_path}")
+            choice = typer.prompt("Which file to open? (number)")
+            try:
+                selected = recent_files[int(choice) - 1]
+                print(f"========== Opening file: {selected}")  # Debug print
+                os.system(f"code --goto {selected}")
+                return f"========== Opened recent file: {selected}"
+            except (ValueError, IndexError):
+                return "========== Invalid selection"
+        return "========== No recent files found"
 
-    conn = get_connection()
-    cur = conn.cursor()
-    if show_all:
-        sql = (
-            "SELECT id, task_name, priority, status, created_at "
-            "FROM tasks ORDER BY {sort_by} ASC"
-        )
-    else:
-        sql = (
-            "SELECT id, task_name, priority, status, created_at "
-            "FROM tasks WHERE status != 'complete' ORDER BY {sort_by} ASC"
-        )
-
-    cur.execute(sql)
-    tasks = cur.fetchall()
-    conn.close()
-
-    result = "Tasks:\n"
-    for t in tasks:
-        result += (
-            f"ID={t[0]}, Name={t[1]}, Priority={t[2]}, Status={t[3]}, Created={t[4]}\n"
-        )
-
-    typer.echo(result.strip())
-    return result
-
-
-# -----------------------------------------------------
-# 30) inspect_task
-# -----------------------------------------------------
-@app.command()
-def inspect_task(
-    task_id: str = typer.Argument(..., help="ID of the task to inspect"),
-    json_output: bool = typer.Option(
-        False, "--json", help="Show output in JSON format"
-    ),
-):
-    """
-    Inspects a specific task by ID, optionally in JSON format.
-    """
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT id, task_name, priority, status, created_at FROM tasks WHERE id = ?",
-        (task_id,),
+    # Build DeepSeek prompt
+    codebase_structure = get_codebase_structure(project_root)
+    prompt = get_framework_specific_prompt(
+        workspace, codebase_structure, file_description, context
     )
-    row = cur.fetchone()
-    conn.close()
+    print(f"========== Codebase structure: {codebase_structure}")
+    print(f"DeepSeek prompt: {prompt}")
 
-    if not row:
-        msg = f"No task found with ID {task_id}."
-        typer.echo(msg)
-        return msg
+    # Get matches from DeepSeek
+    response = json_prompt(prompt)
+    print(f"DeepSeek response: {response}")
 
-    task_dict = {
-        "id": row[0],
-        "task_name": row[1],
-        "priority": row[2],
-        "status": row[3],
-        "created_at": row[4],
-    }
-
-    if json_output:
-        result = json.dumps(task_dict, indent=2)
-    else:
-        result = (
-            f"Task ID={task_dict['id']}, Name={task_dict['task_name']}, "
-            f"Priority={task_dict['priority']}, Status={task_dict['status']}, "
-            f"Created={task_dict['created_at']}"
+    # Parse matches using provided confidence score
+    matches = []
+    for match in response.get("results", []):
+        matches.append(
+            {
+                "file_path": match.get("file", ""),
+                "confidence_score": match.get("confidence_score", 0.8),
+            }
         )
-    typer.echo(result)
-    return result
+
+    # Sort by confidence
+    matches.sort(key=lambda x: x.get("confidence_score", 0), reverse=True)
+
+    if not matches:
+        return "No matching files found"
+
+    # If single high-confidence match, open directly
+    if matches[0]["confidence_score"] > 0.9:
+        file_path = os.path.join(project_root, matches[0]["file_path"])
+        print(f"High confidence match found: {file_path}")  # Debug print
+        _cache_recent_file(file_path)
+        open_in_editor(file_path)
+        return f"Opened file: {file_path}"
+
+    # Multiple matches - show options
+    typer.echo("Multiple matches found:")
+    for i, match in enumerate(matches[:5]):
+        typer.echo(
+            f"{i+1}. {match['file_type']} file: {match['file_path']} "
+            f"(confidence: {match['confidence_score']:.2f})"
+        )
+
+    choice = typer.prompt("Which file to edit? (number)")
+    try:
+        selected = matches[int(choice) - 1]
+        file_path = os.path.join(project_root, selected["file_path"])
+        print(f"User selected file: {file_path}")  # Debug print
+        _cache_recent_file(file_path)
+
+        print(f"Opening file in editor: {file_path}")
+        open_in_editor(file_path)
+        return f"Opened {selected['file_type']} file: {file_path}"
+    except (ValueError, IndexError):
+        return "Invalid selection"
 
 
 # -----------------------------------------------------

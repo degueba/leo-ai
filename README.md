@@ -1,9 +1,9 @@
-# "Always-On" Deepseek AI Assistant
+# Leo, Your Personal AI Assistant
 > A pattern for an always on AI Assistant powered by Deepseek-V3, RealtimeSTT, and Typer for engineering
 >
 > Checkout [the demo](https://youtu.be/zoBwIi4ZiTA) where we walk through using this always-on-ai-assistant.
 
-![ada-deepseek-v3.png](./images/ada-deepseek-v3.png)
+![leo-deepseek-v3.png](./images/leo-ai-deepseek.jpg)
 
 ## Setup
 - `cp .env.sample .env`
