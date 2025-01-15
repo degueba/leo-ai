@@ -9,7 +9,7 @@ from modules.utils import (
     setup_logging,
 )
 from modules.deepseek import prefix_prompt
-from modules.execute_python import execute_uv_python, execute
+from modules.execute_python import execute
 from elevenlabs import play
 from elevenlabs.client import ElevenLabs
 import time
@@ -136,7 +136,7 @@ class TyperAgent:
 
             # Generate command using DeepSeek
             self.logger.info("🤖 Processing text with DeepSeek...")
-            prefix = f"uv run python {typer_file}"
+            prefix = f"python {typer_file}"
             command = prefix_prompt(prompt=formatted_prompt, prefix=prefix)
 
             if command == prefix.strip():
@@ -146,6 +146,7 @@ class TyperAgent:
 
             # Handle different modes with markdown formatting
             assistant_name = get_config("typer_assistant.assistant_name")
+
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             # command_with_prefix = f"uv run python {typer_file} {command}"
@@ -159,7 +160,7 @@ class TyperAgent:
                 )
                 with open(scratchpad, "a") as f:
                     f.write(result)
-                self.think_speak(f"Command generated")
+                self.think_speak("Command generated")
                 return result
 
             elif mode == "execute":
@@ -169,22 +170,24 @@ class TyperAgent:
                 result = (
                     f"\n\n## {assistant_name} Executed Command ({timestamp})\n\n"
                     f"> Request: {text}\n\n"
-                    f"**{assistant_name}'s Command:** \n```bash\n{command_with_prefix}\n```\n\n"
-                    f"**Output:** \n```\n{output}```"
+                    f"**{assistant_name}'s Command:** \n"
+                    f"```bash\n{command_with_prefix}\n```\n\n"
+                    f"**Output:** \n"
+                    f"```\n{output}```"
                 )
                 with open(scratchpad, "a") as f:
                     f.write(result)
-                self.think_speak(f"Command generated and executed")
+                self.think_speak("Command generated and executed")
                 return output
 
             elif mode == "execute-no-scratch":
                 self.logger.info(f"⚡ Executing command: `{command_with_prefix}`")
                 output = execute(command)
-                self.think_speak(f"Command generated and executed")
+                self.think_speak("Command generated and executed")
                 return output
 
             else:
-                self.think_speak(f"I had trouble running that command")
+                self.think_speak("I had trouble running that command")
                 raise ValueError(f"Invalid mode: {mode}")
 
         except Exception as e:
@@ -206,7 +209,7 @@ class TyperAgent:
         response_prompt = response_prompt.replace(
             "{{personal_ai_assistant_name}}", assistant_name
         )
-        prompt_prefix = f"Your Conversational Response: "
+        prompt_prefix = "Your Conversational Response: "
         response = prefix_prompt(
             prompt=response_prompt, prefix=prompt_prefix, no_prefix=True
         )

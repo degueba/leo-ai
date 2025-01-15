@@ -1,0 +1,62 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Agent: Awaken",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_typer_assistant.py",
+                "awaken",
+                "--typer-file",
+                "commands/template.py",
+                "--scratchpad",
+                "scratchpad.md",
+                "--mode",
+                "execute"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+        {
+            "label": "Agent: Plan",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_typer_assistant.py",
+                "plan",
+                "--typer-file",
+                "commands/template.py",
+                "--scratchpad",
+                "scratchpad.md"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+        {
+            "label": "Agent: Execute",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_typer_assistant.py",
+                "execute",
+                "--typer-file",
+                "commands/template.py",
+                "--scratchpad",
+                "scratchpad.md"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always"
+            }
+        }
+    ]
+} 

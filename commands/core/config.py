@@ -33,3 +33,13 @@ def get_workspace(name: str) -> Dict[str, Any]:
         # Ensure the path is absolute
         workspace["path"] = os.path.abspath(os.path.expanduser(workspace["path"]))
     return workspace
+
+
+def get_current_workspace() -> str:
+    """Get the current workspace from config"""
+    try:
+        with open(WORKSPACE_CONFIG, "r") as f:
+            config = json.load(f)
+            return config.get("current_workspace", None)
+    except Exception:
+        return None

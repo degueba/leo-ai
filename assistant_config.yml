@@ -1,12 +1,12 @@
 typer_assistant:
-  assistant_name: Leo
+  assistant_name: Bob
   human_companion_name: Rodrigo
   ears: realtime-stt
   brain: deepseek-v3 # only deepseek-v3
   voice: elevenlabs # local, elevenlabs
   elevenlabs_voice: 1SM7GgM6IMuvQlz2BwM3
 base_assistant:
-  assistant_name: Leo
+  assistant_name: Bob
   human_companion_name: Rodrigo
   ears: realtime-stt
   brain: deepseek-v3 # deepseek-v3, ollama:phi4, ollama:<any installed model>

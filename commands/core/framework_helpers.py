@@ -1,9 +1,7 @@
 from commands.core.config import get_workspaces
 
 
-def get_framework_specific_prompt(
-    workspace, codebase_structure, file_description, context
-):
+def get_framework_specific_prompt(workspace, codebase_structure, file_description):
     config = get_workspaces()
     workspace_config = config["workspaces"].get(workspace, {})
     frameworks = workspace_config.get("frameworks", {})
@@ -50,7 +48,7 @@ def get_framework_specific_prompt(
 
     return f"""
     Given this codebase structure: {codebase_structure}
-    Find files matching: "{file_description}" with context: "{context}".
+    Find files matching: "{file_description}".
     This is a {"monorepo" if len(framework_prompts) > 1 else "project"} with
     the following frameworks:
     {"".join(framework_prompts)}

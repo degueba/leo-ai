@@ -10,7 +10,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
 
 # Now you can import modules
-from core.config import get_workspaces  # noqa: E402
+from core.config import get_current_workspace, get_workspaces  # noqa: E402
 from core.file_operations import (  # noqa: E402
     _cache_recent_file,
     _get_recent_files,
@@ -132,31 +132,33 @@ def compare_files(
 @app.command()
 def edit_file(
     file_description: str = typer.Argument(..., help="Description of file to edit"),
-    context: str = typer.Option(
-        "", "--context", help="Additional context about the file"
-    ),
     workspace: str = typer.Option(None, "--workspace", help="Specify workspace to use"),
 ):
     print("DEBUG: Starting edit_file command")
     try:
         # Get workspace config
         print(f"DEBUG: Getting workspace config for '{workspace}'")
-        workspaces = get_workspaces()
-        print(f"DEBUG: Workspaces found: {list(workspaces['workspaces'].keys())}")
+        # Get current workspace configuration
+        workspace = get_current_workspace()
+        print(f"DEBUG: Current workspace: {workspace}")
 
         if workspace:
-            workspace_config = workspaces["workspaces"].get(workspace)
+            # Get workspace config
+            all_workspaces = get_workspaces()
+            workspace_config = all_workspaces["workspaces"].get(workspace)
+
             if not workspace_config:
-                print(f"DEBUG: Workspace '{workspace}' not found")
-                return f"Workspace '{workspace}' not found"
-            project_root = workspace_config["path"]  # Extract the path string
+                print(f"DEBUG: Current workspace '{workspace}' not found in config")
+                return f"Current workspace '{workspace}' not found"
+
+            project_root = workspace_config["path"]
         else:
-            # Use current project root if no workspace specified
+            # Fallback to default project root if no workspace configured
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             workspace_config = {"frameworks": {}}
 
         print(f"DEBUG: Project root set to: {project_root}")
-        print(f"========== Starting edit_file with: {file_description}, {context}")
+        print(f"========== Starting edit_file with: {file_description}")
 
         # Check for recent files request
         if "recent" in file_description.lower():
@@ -179,7 +181,7 @@ def edit_file(
         # Build DeepSeek prompt
         codebase_structure = get_codebase_structure(project_root)
         prompt = get_framework_specific_prompt(
-            workspace, codebase_structure, file_description, context
+            workspace, codebase_structure, file_description
         )
         print(f"========== Codebase structure: {codebase_structure}")
         print(f"DeepSeek prompt: {prompt}")
@@ -195,6 +197,7 @@ def edit_file(
                 {
                     "file_path": match.get("file", ""),
                     "confidence_score": match.get("confidence_score", 0.8),
+                    "file_type": match.get("file_type", "unknown"),
                 }
             )
 
