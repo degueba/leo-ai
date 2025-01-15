@@ -137,95 +137,104 @@ def edit_file(
     ),
     workspace: str = typer.Option(None, "--workspace", help="Specify workspace to use"),
 ):
-    # Get workspace config
-    workspaces = get_workspaces()
-    if workspace:
-        workspace_config = workspaces["workspaces"].get(workspace)
-        if not workspace_config:
-            return f"Workspace '{workspace}' not found"
-        project_root = workspace_config["path"]  # Extract the path string
-    else:
-        # Use current project root if no workspace specified
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        workspace_config = {"frameworks": {}}
-
-    print(f"========== Project Selected: {project_root}")
-    print(f"========== Starting edit_file with: {file_description}, {context}")
-
-    # Check for recent files request
-    if "recent" in file_description.lower():
-        print("Handling recent files request")  # Debug print
-        recent_files = _get_recent_files()
-        if recent_files:
-            typer.echo("Recent files:")
-            for i, file_path in enumerate(recent_files[:5]):
-                typer.echo(f"{i+1}. {file_path}")
-            choice = typer.prompt("Which file to open? (number)")
-            try:
-                selected = recent_files[int(choice) - 1]
-                print(f"========== Opening file: {selected}")  # Debug print
-                os.system(f"code --goto {selected}")
-                return f"========== Opened recent file: {selected}"
-            except (ValueError, IndexError):
-                return "========== Invalid selection"
-        return "========== No recent files found"
-
-    # Build DeepSeek prompt
-    codebase_structure = get_codebase_structure(project_root)
-    prompt = get_framework_specific_prompt(
-        workspace, codebase_structure, file_description, context
-    )
-    print(f"========== Codebase structure: {codebase_structure}")
-    print(f"DeepSeek prompt: {prompt}")
-
-    # Get matches from DeepSeek
-    response = json_prompt(prompt)
-    print(f"DeepSeek response: {response}")
-
-    # Parse matches using provided confidence score
-    matches = []
-    for match in response.get("results", []):
-        matches.append(
-            {
-                "file_path": match.get("file", ""),
-                "confidence_score": match.get("confidence_score", 0.8),
-            }
-        )
-
-    # Sort by confidence
-    matches.sort(key=lambda x: x.get("confidence_score", 0), reverse=True)
-
-    if not matches:
-        return "No matching files found"
-
-    # If single high-confidence match, open directly
-    if matches[0]["confidence_score"] > 0.9:
-        file_path = os.path.join(project_root, matches[0]["file_path"])
-        print(f"High confidence match found: {file_path}")  # Debug print
-        _cache_recent_file(file_path)
-        open_in_editor(file_path)
-        return f"Opened file: {file_path}"
-
-    # Multiple matches - show options
-    typer.echo("Multiple matches found:")
-    for i, match in enumerate(matches[:5]):
-        typer.echo(
-            f"{i+1}. {match['file_type']} file: {match['file_path']} "
-            f"(confidence: {match['confidence_score']:.2f})"
-        )
-
-    choice = typer.prompt("Which file to edit? (number)")
+    print("DEBUG: Starting edit_file command")
     try:
-        selected = matches[int(choice) - 1]
-        file_path = os.path.join(project_root, selected["file_path"])
-        print(f"User selected file: {file_path}")  # Debug print
-        _cache_recent_file(file_path)
+        # Get workspace config
+        print(f"DEBUG: Getting workspace config for '{workspace}'")
+        workspaces = get_workspaces()
+        print(f"DEBUG: Workspaces found: {list(workspaces['workspaces'].keys())}")
 
-        print(f"Opening file in editor: {file_path}")
-        open_in_editor(file_path)
-        return f"Opened {selected['file_type']} file: {file_path}"
-    except (ValueError, IndexError):
-        return "Invalid selection"
+        if workspace:
+            workspace_config = workspaces["workspaces"].get(workspace)
+            if not workspace_config:
+                print(f"DEBUG: Workspace '{workspace}' not found")
+                return f"Workspace '{workspace}' not found"
+            project_root = workspace_config["path"]  # Extract the path string
+        else:
+            # Use current project root if no workspace specified
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            workspace_config = {"frameworks": {}}
+
+        print(f"DEBUG: Project root set to: {project_root}")
+        print(f"========== Starting edit_file with: {file_description}, {context}")
+
+        # Check for recent files request
+        if "recent" in file_description.lower():
+            print("Handling recent files request")  # Debug print
+            recent_files = _get_recent_files()
+            if recent_files:
+                typer.echo("Recent files:")
+                for i, file_path in enumerate(recent_files[:5]):
+                    typer.echo(f"{i+1}. {file_path}")
+                choice = typer.prompt("Which file to open? (number)")
+                try:
+                    selected = recent_files[int(choice) - 1]
+                    print(f"========== Opening file: {selected}")  # Debug print
+                    os.system(f"code --goto {selected}")
+                    return f"========== Opened recent file: {selected}"
+                except (ValueError, IndexError):
+                    return "========== Invalid selection"
+            return "========== No recent files found"
+
+        # Build DeepSeek prompt
+        codebase_structure = get_codebase_structure(project_root)
+        prompt = get_framework_specific_prompt(
+            workspace, codebase_structure, file_description, context
+        )
+        print(f"========== Codebase structure: {codebase_structure}")
+        print(f"DeepSeek prompt: {prompt}")
+
+        # Get matches from DeepSeek
+        response = json_prompt(prompt)
+        print(f"DeepSeek response: {response}")
+
+        # Parse matches using provided confidence score
+        matches = []
+        for match in response.get("results", []):
+            matches.append(
+                {
+                    "file_path": match.get("file", ""),
+                    "confidence_score": match.get("confidence_score", 0.8),
+                }
+            )
+
+        # Sort by confidence
+        matches.sort(key=lambda x: x.get("confidence_score", 0), reverse=True)
+
+        if not matches:
+            return "No matching files found"
+
+        # If single high-confidence match, open directly
+        if matches[0]["confidence_score"] > 0.9:
+            file_path = os.path.join(project_root, matches[0]["file_path"])
+            print(f"High confidence match found: {file_path}")  # Debug print
+            _cache_recent_file(file_path)
+            open_in_editor(file_path)
+            return f"Opened file: {file_path}"
+
+        # Multiple matches - show options
+        typer.echo("Multiple matches found:")
+        for i, match in enumerate(matches[:5]):
+            typer.echo(
+                f"{i+1}. {match['file_type']} file: {match['file_path']} "
+                f"(confidence: {match['confidence_score']:.2f})"
+            )
+
+        choice = typer.prompt("Which file to edit? (number)")
+        try:
+            selected = matches[int(choice) - 1]
+            file_path = os.path.join(project_root, selected["file_path"])
+            print(f"User selected file: {file_path}")  # Debug print
+            _cache_recent_file(file_path)
+
+            print(f"Opening file in editor: {file_path}")
+            open_in_editor(file_path)
+            return f"Opened {selected['file_type']} file: {file_path}"
+        except (ValueError, IndexError):
+            return "Invalid selection"
+    except Exception as e:
+        print(f"DEBUG: Error in edit_file: {e}")
+        return "Error: Could not edit file"
 
 
 # -----------------------------------------------------
